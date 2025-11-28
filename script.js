@@ -24,6 +24,8 @@ class Particle {
         this.size = Math.random() * 1.5 + 0.5;
         this.density = (Math.random() * 30) + 1;
         this.phase = Math.random() * Math.PI * 2;
+        this.hasThread = Math.random() > 0.7;
+        this.threadLength = Math.random() * 20 + 5;
     }
 
     draw() {
@@ -32,6 +34,16 @@ class Particle {
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         ctx.closePath();
         ctx.fill();
+
+        if (this.hasThread) {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 0.5;
+            ctx.beginPath();
+            ctx.moveTo(this.x, this.y);
+            const sway = Math.sin(Date.now() * 0.002 + this.phase) * 2;
+            ctx.lineTo(this.x + sway, this.y + this.threadLength);
+            ctx.stroke();
+        }
     }
 
     update() {
@@ -50,7 +62,8 @@ class Car {
         this.y = height * 0.6;
         this.speed = (Math.random() * 2 + 1) * (Math.random() < 0.5 ? 1 : -1);
         this.size = Math.random() * 3 + 2;
-        this.color = Math.random() > 0.5 ? '#ffeb3b' : '#ff5252';
+        if (width < 600) this.size *= 0.6;
+
         if (this.speed > 0) this.color = '#ffeb3b';
         else this.color = '#ff5252';
     }
@@ -134,7 +147,9 @@ function init() {
     offCanvas.height = height;
     const offCtx = offCanvas.getContext('2d');
 
-    const fontSize = Math.min(width, height) * 0.12;
+    let fontSize = Math.min(width, height) * 0.15;
+    if (width < 600) fontSize = width * 0.2;
+
     offCtx.font = `bold ${fontSize}px "Times New Roman", serif`;
     offCtx.fillStyle = 'white';
     offCtx.textAlign = 'center';
@@ -146,7 +161,8 @@ function init() {
     offCtx.restore();
 
     const textData = offCtx.getImageData(0, 0, width, height);
-    const step = 4;
+
+    const step = width < 600 ? 5 : 4;
 
     for (let y = 0; y < height; y += step) {
         for (let x = 0; x < width; x += step) {
@@ -166,9 +182,17 @@ function drawBridge() {
     const silhouetteColor = '#1a1a1a';
     const cableColor = '#2a2a2a';
     const deckY = height * 0.6;
-    const towerWidth = width * 0.08;
-    const towerX1 = width * 0.2;
-    const towerX2 = width * 0.8;
+
+    let towerWidth = width * 0.08;
+    let towerX1 = width * 0.2;
+    let towerX2 = width * 0.8;
+
+    if (width < 600) {
+        towerWidth = width * 0.12;
+        towerX1 = width * 0.1;
+        towerX2 = width * 0.9;
+    }
+
     const towerTop = height * 0.2;
     const waterLevel = height * 0.85;
 
@@ -183,14 +207,14 @@ function drawBridge() {
     ctx.beginPath(); ctx.arc(towerX2, deckY - 50, towerWidth / 4, Math.PI, 0); ctx.fill();
 
     ctx.strokeStyle = silhouetteColor;
-    ctx.lineWidth = 10;
+    ctx.lineWidth = width < 600 ? 6 : 10;
     ctx.beginPath();
     ctx.moveTo(0, deckY);
     ctx.lineTo(width, deckY);
     ctx.stroke();
 
     ctx.strokeStyle = cableColor;
-    ctx.lineWidth = 3;
+    ctx.lineWidth = width < 600 ? 2 : 3;
     ctx.beginPath();
     ctx.moveTo(0, deckY - 50);
     ctx.quadraticCurveTo(towerX1 / 2, deckY - 20, towerX1, towerTop);
@@ -207,7 +231,8 @@ function drawBridge() {
     const k = deckY + 50;
     const a = (towerTop - k) / Math.pow(towerX1 - h, 2);
 
-    for (let x = towerX1 + 10; x < towerX2; x += 8) {
+    const suspenderStep = width < 600 ? 12 : 8;
+    for (let x = towerX1 + 10; x < towerX2; x += suspenderStep) {
         const y = a * Math.pow(x - h, 2) + k;
         ctx.beginPath();
         ctx.moveTo(x, deckY);
@@ -286,7 +311,13 @@ function animate() {
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
     ctx.beginPath();
     const deckY = height * 0.6;
-    const towerX1 = width * 0.2;
+
+    let towerWidth = width * 0.08;
+    let towerX1 = width * 0.2;
+    if (width < 600) {
+        towerWidth = width * 0.12;
+        towerX1 = width * 0.1;
+    }
     const towerTop = height * 0.2;
     const h = width / 2;
     const k = deckY + 50;
