@@ -6,6 +6,7 @@ html {
     height: 100%;
     overflow: hidden;
     background: linear-gradient(to bottom, #2b1055, #7597de, #fea49f);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .container {
@@ -24,4 +25,105 @@ html {
     width: 100%;
     height: 100%;
     z-index: 2;
+    cursor: pointer;
+}
+
+.control-panel {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    padding: 20px;
+    border-radius: 15px;
+    z-index: 10;
+    color: white;
+    min-width: 250px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.control-panel h3 {
+    margin: 0 0 15px 0;
+    font-size: 18px;
+    text-align: center;
+    color: #fff;
+}
+
+.control-group {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.control-panel input[type="text"] {
+    padding: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.3s;
+}
+
+.control-panel input[type="text"]:focus {
+    border-color: #ff69b4;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.control-panel input[type="text"]::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.control-panel button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 600;
+}
+
+.control-panel button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.control-panel button:active {
+    transform: translateY(0);
+}
+
+.firework-btn {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+}
+
+.hint {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 10px 0 0 0;
+    text-align: center;
+    line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+    .control-panel {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        min-width: auto;
+        padding: 15px;
+    }
+    
+    .control-panel h3 {
+        font-size: 16px;
+    }
+    
+    .control-panel button {
+        font-size: 12px;
+        padding: 8px 12px;
+    }
 }

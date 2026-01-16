@@ -11,6 +11,22 @@
 <body>
     <div class="container">
         <canvas id="web-canvas"></canvas>
+        <div class="control-panel">
+            <h3>✨ Controls</h3>
+            <div class="control-group">
+                <input type="text" id="text-input" placeholder="Enter your message" maxlength="30">
+                <button onclick="updateText()">Update Text</button>
+            </div>
+            <div class="control-group">
+                <button id="toggle-hearts" onclick="toggleHearts()">❤️ ON</button>
+                <button id="toggle-stars" onclick="toggleStars()">⭐ ON</button>
+                <button id="toggle-moon" onclick="toggleMoon()">🌙 ON</button>
+            </div>
+            <div class="control-group">
+                <button onclick="launchFireworks()" class="firework-btn">🎆 Launch Fireworks</button>
+            </div>
+            <p class="hint">💡 Click anywhere to create fireworks!<br>Move mouse to interact with text!</p>
+        </div>
     </div>
     <script src="script.js"></script>
 </body>

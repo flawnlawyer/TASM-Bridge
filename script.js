@@ -6,6 +6,17 @@ let particles = [];
 let cars = [];
 let buildings = [];
 let waterOffset = 0;
+let hearts = [];
+let stars = [];
+let shootingStars = [];
+let fireworks = [];
+let moon;
+let mouse = { x: null, y: null, radius: 150 };
+let customText = 'I LOVE YOU';
+let theme = 'default';
+let showHearts = true;
+let showStars = true;
+let showMoon = true;
 
 function resize() {
     width = canvas.width = window.innerWidth;
@@ -14,6 +25,20 @@ function resize() {
 }
 
 window.addEventListener('resize', resize);
+
+canvas.addEventListener('mousemove', (e) => {
+    mouse.x = e.x;
+    mouse.y = e.y;
+});
+
+canvas.addEventListener('mouseleave', () => {
+    mouse.x = null;
+    mouse.y = null;
+});
+
+canvas.addEventListener('click', (e) => {
+    createFirework(e.x, e.y);
+});
 
 class Particle {
     constructor(x, y) {
@@ -47,8 +72,69 @@ class Particle {
     }
 
     update() {
-        this.x = this.baseX + Math.sin(Date.now() * 0.001 + this.phase) * 0.3;
-        this.y = this.baseY + Math.cos(Date.now() * 0.0015 + this.phase) * 0.3;
+        let dx = mouse.x - this.x;
+        let dy = mouse.y - this.y;
+        let distance = Math.sqrt(dx * dx + dy * dy);
+        let forceDirectionX = dx / distance;
+        let forceDirectionY = dy / distance;
+        let maxDistance = mouse.radius;
+        let force = (maxDistance - distance) / maxDistance;
+        let directionX = forceDirectionX * force * this.density * 0.6;
+        let directionY = forceDirectionY * force * this.density * 0.6;
+
+        if (distance < mouse.radius && mouse.x != null) {
+            this.x -= directionX;
+            this.y -= directionY;
+        } else {
+            if (this.x !== this.baseX) {
+                let dx = this.x - this.baseX;
+                this.x -= dx / 10;
+            }
+            if (this.y !== this.baseY) {
+                let dy = this.y - this.baseY;
+                this.y -= dy / 10;
+            }
+        }
+
+        this.x += Math.sin(Date.now() * 0.001 + this.phase) * 0.3;
+        this.y += Math.cos(Date.now() * 0.0015 + this.phase) * 0.3;
+    }
+}
+
+class Heart {
+    constructor() {
+        this.reset();
+    }
+
+    reset() {
+        this.x = Math.random() * width;
+        this.y = height + 20;
+        this.size = Math.random() * 15 + 10;
+        this.speed = Math.random() * 0.5 + 0.3;
+        this.opacity = Math.random() * 0.5 + 0.3;
+        this.sway = Math.random() * 2 - 1;
+        this.phase = Math.random() * Math.PI * 2;
+    }
+
+    update() {
+        this.y -= this.speed;
+        this.x += Math.sin(this.y * 0.01 + this.phase) * this.sway;
+        if (this.y < -50) this.reset();
+    }
+
+    draw() {
+        ctx.save();
+        ctx.globalAlpha = this.opacity;
+        ctx.fillStyle = '#ff69b4';
+        ctx.beginPath();
+        const x = this.x;
+        const y = this.y;
+        const s = this.size;
+        ctx.moveTo(x, y + s / 4);
+        ctx.bezierCurveTo(x, y, x - s / 2, y - s / 2, x, y - s / 2);
+        ctx.bezierCurveTo(x + s / 2, y - s / 2, x + s / 2, y, x, y + s / 4);
+        ctx.fill();
+        ctx.restore();
     }
 }
 
@@ -125,10 +211,161 @@ class Building {
     }
 }
 
+class Star {
+    constructor() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height * 0.5;
+        this.size = Math.random() * 1.5 + 0.5;
+        this.twinkleSpeed = Math.random() * 0.02 + 0.01;
+        this.brightness = Math.random();
+    }
+
+    update() {
+        this.brightness += this.twinkleSpeed;
+        if (this.brightness > 1 || this.brightness < 0) {
+            this.twinkleSpeed *= -1;
+        }
+    }
+
+    draw() {
+        ctx.fillStyle = `rgba(255, 255, 255, ${this.brightness * 0.8})`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+class ShootingStar {
+    constructor() {
+        this.reset();
+    }
+
+    reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height * 0.3;
+        this.length = Math.random() * 80 + 40;
+        this.speed = Math.random() * 8 + 6;
+        this.opacity = 1;
+        this.angle = Math.PI / 4;
+    }
+
+    update() {
+        this.x += Math.cos(this.angle) * this.speed;
+        this.y += Math.sin(this.angle) * this.speed;
+        this.opacity -= 0.01;
+        if (this.opacity <= 0) this.reset();
+    }
+
+    draw() {
+        ctx.save();
+        ctx.globalAlpha = this.opacity;
+        const gradient = ctx.createLinearGradient(
+            this.x, this.y,
+            this.x - Math.cos(this.angle) * this.length,
+            this.y - Math.sin(this.angle) * this.length
+        );
+        gradient.addColorStop(0, 'white');
+        gradient.addColorStop(1, 'transparent');
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(this.x, this.y);
+        ctx.lineTo(
+            this.x - Math.cos(this.angle) * this.length,
+            this.y - Math.sin(this.angle) * this.length
+        );
+        ctx.stroke();
+        ctx.restore();
+    }
+}
+
+class Moon {
+    constructor() {
+        this.x = width * 0.85;
+        this.y = height * 0.15;
+        this.radius = width < 600 ? 40 : 60;
+    }
+
+    draw() {
+        ctx.save();
+        ctx.shadowBlur = 30;
+        ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
+        ctx.fillStyle = '#f0f0f0';
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
+        ctx.beginPath();
+        ctx.arc(this.x - 15, this.y - 10, 8, 0, Math.PI * 2);
+        ctx.arc(this.x + 10, this.y + 5, 12, 0, Math.PI * 2);
+        ctx.arc(this.x - 5, this.y + 15, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
+class Firework {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.particles = [];
+        this.colors = ['#ff0000', '#ff69b4', '#ffff00', '#00ff00', '#00ffff', '#ff00ff'];
+        const color = this.colors[Math.floor(Math.random() * this.colors.length)];
+        for (let i = 0; i < 50; i++) {
+            const angle = (Math.PI * 2 * i) / 50;
+            const speed = Math.random() * 4 + 2;
+            this.particles.push({
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                life: 1,
+                color: color
+            });
+        }
+    }
+
+    update() {
+        this.particles.forEach(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.1;
+            p.life -= 0.02;
+        });
+        this.particles = this.particles.filter(p => p.life > 0);
+    }
+
+    draw() {
+        this.particles.forEach(p => {
+            ctx.save();
+            ctx.globalAlpha = p.life;
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        });
+    }
+
+    isDead() {
+        return this.particles.length === 0;
+    }
+}
+
+function createFirework(x, y) {
+    fireworks.push(new Firework(x, y));
+}
+
 function init() {
     particles = [];
     cars = [];
     buildings = [];
+    hearts = [];
+    stars = [];
+    shootingStars = [];
+    fireworks = [];
 
     let currentX = 0;
     while (currentX < width) {
@@ -141,6 +378,20 @@ function init() {
     for (let i = 0; i < 20; i++) {
         cars.push(new Car());
     }
+
+    for (let i = 0; i < 15; i++) {
+        hearts.push(new Heart());
+    }
+
+    for (let i = 0; i < 100; i++) {
+        stars.push(new Star());
+    }
+
+    for (let i = 0; i < 3; i++) {
+        shootingStars.push(new ShootingStar());
+    }
+
+    moon = new Moon();
 
     const offCanvas = document.createElement('canvas');
     offCanvas.width = width;
@@ -157,7 +408,7 @@ function init() {
 
     offCtx.save();
     offCtx.translate(width / 2, height * 0.45);
-    offCtx.fillText('I LOVE YOU', 0, 0);
+    offCtx.fillText(customText, 0, 0);
     offCtx.restore();
 
     const textData = offCtx.getImageData(0, 0, width, height);
@@ -267,6 +518,19 @@ function drawWater() {
 function animate() {
     ctx.clearRect(0, 0, width, height);
 
+    if (showMoon && moon) moon.draw();
+
+    if (showStars) {
+        for (let star of stars) {
+            star.update();
+            star.draw();
+        }
+        for (let ss of shootingStars) {
+            ss.update();
+            ss.draw();
+        }
+    }
+
     drawWater();
 
     for (let b of buildings) b.draw();
@@ -335,8 +599,62 @@ function animate() {
     }
     ctx.stroke();
 
+    if (showHearts) {
+        for (let heart of hearts) {
+            heart.update();
+            heart.draw();
+        }
+    }
+
+    for (let i = fireworks.length - 1; i >= 0; i--) {
+        fireworks[i].update();
+        fireworks[i].draw();
+        if (fireworks[i].isDead()) {
+            fireworks.splice(i, 1);
+        }
+    }
+
     requestAnimationFrame(animate);
 }
+
+// Control panel functions
+function updateText() {
+    const input = document.getElementById('text-input');
+    customText = input.value || 'I LOVE YOU';
+    init();
+}
+
+function toggleHearts() {
+    showHearts = !showHearts;
+    document.getElementById('toggle-hearts').textContent = showHearts ? '❤️ ON' : '❤️ OFF';
+}
+
+function toggleStars() {
+    showStars = !showStars;
+    document.getElementById('toggle-stars').textContent = showStars ? '⭐ ON' : '⭐ OFF';
+}
+
+function toggleMoon() {
+    showMoon = !showMoon;
+    document.getElementById('toggle-moon').textContent = showMoon ? '🌙 ON' : '🌙 OFF';
+}
+
+function launchFireworks() {
+    for (let i = 0; i < 5; i++) {
+        setTimeout(() => {
+            createFirework(
+                Math.random() * width * 0.6 + width * 0.2,
+                Math.random() * height * 0.3 + height * 0.1
+            );
+        }, i * 200);
+    }
+}
+
+window.updateText = updateText;
+window.toggleHearts = toggleHearts;
+window.toggleStars = toggleStars;
+window.toggleMoon = toggleMoon;
+window.launchFireworks = launchFireworks;
 
 resize();
 animate();
